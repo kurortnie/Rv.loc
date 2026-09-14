@@ -1,0 +1,36 @@
+<h1> Регистрация пользователя </h1>
+
+{% if error %}
+    <p style="background-color:crimson;"> {{ error }}</p>
+{% endif %}
+
+<div class="m-3 col-md -6">
+    <form action="" method="POST">
+        <div class="mb-3">
+            <label for="inputName" class="form-label">Логин</label>
+            <input type="text" id="inputName" class="form-control" name="nickname"
+            {% if user_data %}
+                value="{{user_data.nickname}}"
+            {% endif %}
+            >
+            
+        </div>
+        <div class="mb-3">
+            <label for="inputEmail" class="form-label">Email</label>
+            <input type="email" id="inputEmail" class="form-control" name="email"
+            {% if user_data %}
+                value="{{user_data.email}}"
+            {% endif %}
+            >
+        </div>
+        <div class="mb-3">
+            <label for="inputPassword" class="form-label">Password</label>
+            <input type="password" id="inputPassword" class="form-control" name="password"
+            {% if user_data %}
+                value="{{user_data.password}}"
+            {% endif %}
+            >
+        </div>
+            <input type="submit" class="btn btn-primary">
+    </form>
+</div>

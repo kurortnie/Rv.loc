@@ -1,0 +1,51 @@
+{% if not articles and articles != [] %}
+    <h1>Поиск по сайту</h1>
+
+    <div class="m-3 col-md-6">
+        <form action="/articles/search" method="GET">
+            <div class="mb-3">
+                <label for="search" class="form-label">Введите запрос</label>
+                <input type="text" class="form-control" name="q" id="search" placeholder="Введите текст для поиска...">
+            </div>
+            <input class="btn btn-primary" type="submit" value="Найти">
+        </form>
+    </div>
+
+{% else %}
+    <h1>Результаты поиска</h1>
+    <p>По запросу: {{ q }}</p>
+
+    {% if articles == [] %}
+        <p>Ничего не найдено</p>
+        <p><a href="/articles/search">Назад к поиску</a></p>
+    {% else %}
+        <ul class="row list-unstyled m-3">
+        {% for article in articles %}
+            <li class="article col-sm-6 ">
+                <div class="card m-3 h">
+                    <div class="card-body">
+                        <h2 class="card-title">{{ article.name if article.name else article.get_name() }}</h2>
+                        
+                        
+                        {% if article.image %}
+                            <img src="/uploads/{{ article.image }}" width="200px" alt="{{ article.name }}">
+                        {% elif article.img %}
+                            <img src="/uploads/{{ article.img }}" width="200px" alt="{{ article.name }}">
+                        {% endif %}
+                        
+                        <p class="m-3">{{ article.text if article.text else article.get_text() }}</p>
+                        
+                        
+                        {% if article.author %}
+                            <p>Автор: {{ article.author.nickname if article.author.nickname else article.author.login }}</p>
+                        {% endif %}
+                        
+                        <p>ID: {{ article.id if article.id else article.get_id() }}</p>
+                        <a href="/articles/{{ article.id if article.id else article.get_id() }}">Подробнее</a>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endif %}

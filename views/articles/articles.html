@@ -1,0 +1,14 @@
+<h1>{{h1}}</h1>
+
+<ul>
+    {% for article in articles %}
+    <li class="article">
+        <h2>{{ article.get_name() }}</h2>
+        <p>{{ article.get_text() }}</p>
+        <p>Автор: {{ article.get_author().get_nickname() }}</p>
+        <p>{{ article.get_id() }}</p>
+        <a href="articles/{{article.get_id()}}">Подробнее</a>
+    </li>
+    <hr>
+    {% endfor %}
+</ul>
