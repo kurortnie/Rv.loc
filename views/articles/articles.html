@@ -1,14 +1,32 @@
-<h1>{{h1}}</h1>
+<h1>{{ h1 }}</h1>
 
-<ul>
-    {% for article in articles %}
-    <li class="article">
-        <h2>{{ article.get_name() }}</h2>
-        <p>{{ article.get_text() }}</p>
-        <p>Автор: {{ article.get_author().get_nickname() }}</p>
-        <p>{{ article.get_id() }}</p>
-        <a href="articles/{{article.get_id()}}">Подробнее</a>
-    </li>
-    <hr>
-    {% endfor %}
-</ul>
+<a href="/articles/add" class="add-link">+ Добавить статью</a>
+
+{% if articles %}
+    <div class="articles-grid">
+        {% for article in articles %}
+            <article class="article">
+                {% if article.get_image() %}
+                    <img class="article__image"
+                         src="/static/uploads/articles/{{ article.get_image() }}"
+                         alt="{{ article.get_name() }}">
+                {% endif %}
+
+                <div class="article__body">
+                    <h3 class="article__title">
+                        <a href="/articles/{{ article.get_id() }}">{{ article.get_name() }}</a>
+                    </h3>
+                    <p class="article__text">{{ article.get_text() }}</p>
+
+                    <div class="article__actions">
+                        <a href="/articles/{{ article.get_id() }}">Смотреть</a>
+                        <a href="/articles/{{ article.get_id() }}/edit">Изменить</a>
+                        <a href="/articles/{{ article.get_id() }}/delete">Удалить</a>
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>Статей пока нет. <a href="/articles/add">Добавить первую</a>.</p>
+{% endif %}

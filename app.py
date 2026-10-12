@@ -12,12 +12,25 @@ import routes
 import handlers
 
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class API:
     def __init__(self, static_dir="assets"):
         self.routes = routes.routes
-        self.whitenoise = WhiteNoise(self.wsgi_app, root=static_dir)
+
+        # Основная статика (CSS, JS, шрифты) — из папки assets/
+        self.whitenoise = WhiteNoise(
+            self.wsgi_app,
+            root=os.path.join(BASE_DIR, 'assets')
+        )
+
+        # Дополнительно: раздаём папку static/ по префиксу /static/
+        # Сюда попадают загруженные фото статей
+        self.whitenoise.add_files(
+            os.path.join(BASE_DIR, 'static'),
+            prefix='/static/'
+        )
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
@@ -25,41 +38,16 @@ class API:
         response = self.handle_request(request)
 
         return response(environ, start_response)
-    
+
     def __call__(self, environ, start_response):
-        # requet = Request(environ)
-        # response = self.handle_request(requet)
-        # return response(environ, start_response)
         return self.whitenoise(environ, start_response)
-
-
-
-
-        
-
-        # response_body  = ['{key}: {value}'.format(key=key, value=value) for key, value in sorted(environ.items())]
-        
-        # response.text = '\n'.join(response_body)
-        # response.headers.add('Content-type', 'text/plain')
-
-        
-        
-        
-        # status = "200 OK"
-
-
-
-        # response_headers = [('Content-type', 'text/plain')]
-        # start_response(status, response_headers)
-
-        # return [response_body.encode('utf-8')]
 
     def handle_request(self, request):
         response = Response()
-        
+
         try:
             result = self.find_handler_re(request_path=request.path)
-        
+
             request_url = request.environ.get("REQUEST_URI")
 
             result = self.find_handler_re(request_path=request.path)
@@ -70,40 +58,37 @@ class API:
             controller = handler[0](request)
             action = handler[1]
             action(controller, request, response, *params)
-        
+
         except NotFoundException as e:
             response.status_code = 404
-            response.text = View('default').render_html('errors/404.html', {'error' : e})
-        
+            response.text = View('default').render_html('errors/404.html', {'error': e})
+
         except UnauthorizedException as e:
             response.status_code = 401
-            response.text = View('default').render_html('errors/401.html', {'error' : e})
-            
-            # response.text = f"Привет, ты запросил страницу {request_url}"
+            response.text = View('default').render_html('errors/401.html', {'error': e})
 
         return response
-    
+
     def find_handler(self, request_path):
         for path, handler in self.routes.items():
             if path == request_path:
                 return handler
-            
+
     def find_handler_re(self, request_path):
         for path, handler in self.routes.items():
             match = re.search(path, request_path)
             if match is not None:
                 return handler, match.groups()
-    
+
     def default_response(self, response):
         response.status_code = 404
         response.text = "Page is not found"
-    
+
     def route(self, path):
         def wrapper(handler):
             self.routes[path] = handler
             return handler
         return wrapper
 
-app = API()
 
-# def app (environ, start_response):
+app = API()

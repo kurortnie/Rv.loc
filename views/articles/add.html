@@ -1,0 +1,32 @@
+<h1>Добавить статью</h1>
+
+{% if error %}
+    <div class="error-msg">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="/articles/add" enctype="multipart/form-data">
+    <p>
+        <label for="name">Название статьи</label>
+        <input type="text" id="name" name="name"
+               required minlength="3" maxlength="200"
+               placeholder="Введите заголовок">
+    </p>
+
+    <p>
+        <label for="text">Текст статьи</label>
+        <textarea id="text" name="text"
+                  required minlength="10"
+                  placeholder="Введите текст статьи"></textarea>
+    </p>
+
+    <p>
+        <label for="image">Фото (png, jpg, jpeg, gif, webp, до 5 МБ)</label>
+        <input type="file" id="image" name="image"
+               accept="image/png,image/jpeg,image/gif,image/webp">
+    </p>
+
+    <p>
+        <button type="submit" class="input_button">Опубликовать</button>
+        <a href="/articles" class="btn-secondary">Отмена</a>
+    </p>
+</form>

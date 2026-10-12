@@ -1,6 +1,15 @@
+<h1>{{ article.get_name() }}</h1>
 
-        <h2>{{ article.get_name() }}</h2>
-        <p>{{ article.get_text() }}</p>
+{% if article.get_image() %}
+    <img class="article-view__image"
+         src="/static/uploads/articles/{{ article.get_image() }}"
+         alt="{{ article.get_name() }}">
+{% endif %}
 
-        <p>Автор: {{ article.get_author().get_nickname() }}</p>
-        <a href="/articles">Все статьи</a>
+<p class="article-view__text">{{ article.get_text() }}</p>
+
+<div class="article-view__actions">
+    <a href="/articles">← К списку</a>
+    <a href="/articles/{{ article.get_id() }}/edit">Редактировать</a>
+    <a href="/articles/{{ article.get_id() }}/delete">Удалить</a>
+</div>
