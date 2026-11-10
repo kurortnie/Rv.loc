@@ -1,0 +1,72 @@
+<h1>{{ h1 }}</h1>
+
+<!-- Кнопка-ссылка на отдельную страницу добавления -->
+<a href="/articles_api/add" class="add-link" style="display: inline-block; margin-bottom: 25px; padding: 8px 15px; background: #ffffff; color: #000000; text-decoration: none; border-radius: 4px; font-weight: bold;">+ Добавить статью через API</a>
+
+<div id="articles-container" class="articles-grid">
+    <p style="color: #ccc;">Загрузка статей из API...</p>
+</div>
+
+<script>
+function loadArticles() {
+    fetch('/api/articles')
+        .then(response => response.json())
+        .then(articles => {
+            const container = document.getElementById('articles-container');
+            container.innerHTML = ''; 
+
+            if (articles.length === 0) {
+                container.innerHTML = '<p style="color: #ccc;">Статей пока нет.</p>';
+                return;
+            }
+
+            articles.forEach(article => {
+                let imageHtml = article.image_url 
+                    ? `<img class="article__image" src="${article.image_url}" alt="${article.name}">` 
+                    : '';
+
+                const articleHtml = `
+                    <article class="article" id="article-${article.id}">
+                        ${imageHtml}
+                        <div class="article__body">
+                            <h3 class="article__title">
+                                <a href="/articles/${article.id}">${article.name}</a>
+                            </h3>
+                            <p class="article__text">${article.text}</p>
+                            <div class="article__actions" style="margin-top: 15px;">
+                                <a href="/articles/${article.id}">Смотреть</a>
+                                <!-- Ссылка ведет на отдельную страницу редактирования через API -->
+                                <a href="/articles_api/${article.id}/edit">Изменить через API</a>
+                                <button onclick="deleteArticle(${article.id})" class="delete-link" style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 0; font-family: inherit; font-size: inherit; margin-left: 10px;">Удалить</button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+                container.insertAdjacentHTML('beforeend', articleHtml);
+            });
+        })
+        .catch(err => {
+            document.getElementById('articles-container').innerHTML = '<p style="color:red;">Ошибка загрузки данных из API</p>';
+        });
+}
+
+function deleteArticle(id) {
+    if (!confirm('Вы уверены, что хотите удалить эту статью через API?')) return;
+
+    fetch(`/api/articles/${id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            const el = document.getElementById(`article-${id}`);
+            if (el) el.remove();
+        } else {
+            alert('Ошибка удаления: ' + data.error);
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadArticles);
+</script>

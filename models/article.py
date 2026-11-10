@@ -25,6 +25,9 @@ class Article(ActiveRecordEntity):
         return self._text
 
     def get_image(self):
+        # Если в переменной пусто, возвращаем None для корректной работы шаблонов и API
+        if not self._image or str(self._image).strip() == "":
+            return None
         return self._image
 
     def get_create_at(self):
@@ -41,6 +44,20 @@ class Article(ActiveRecordEntity):
 
     def set_image(self, image):
         self._image = image
+
+    def to_dict(self):
+        """
+        Преобразует объект статьи в словарь.
+        Используется контроллером для отправки данных через API в формате JSON.
+        """
+        return {
+            'id': self.get_id(),
+            'author_id': self.get_author_id(),
+            'name': self.get_name(),
+            'text': self.get_text(),
+            'image_url': f"/static/uploads/articles/{self.get_image()}" if self.get_image() else None,
+            'created_at': self.get_create_at()
+        }
 
     @staticmethod
     def get_table_name():

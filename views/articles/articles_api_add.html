@@ -1,0 +1,70 @@
+<h1>Добавить статью через API</h1>
+
+<div id="api-error-message" style="color: red; margin-bottom: 15px; font-weight: bold;"></div>
+
+<div class="api-form-box" style="background: #1a1a1a; border: 1px solid #333; padding: 20px; border-radius: 5px;">
+    <div style="margin-bottom: 15px;">
+        <input type="text" id="api-name" placeholder="Название статьи" style="width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px;">
+    </div>
+    <div style="margin-bottom: 15px;">
+        <textarea id="api-text" placeholder="Текст статьи" style="width: 100%; height: 120px; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px; resize: vertical;"></textarea>
+    </div>
+    <div style="margin-bottom: 15px;">
+        <input type="file" id="api-image" accept="image/*" style="color: #ccc;">
+    </div>
+    <button onclick="submitNewArticle()" style="padding: 10px 20px; background: #ffffff; color: rgb(0, 0, 0); border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Сохранить статью</button>
+    <a href="/articles_api" style="color: #ccc; margin-left: 15px; text-decoration: none;">Отмена</a>
+</div>
+
+<script>
+function submitNewArticle() {
+    const nameEl = document.getElementById('api-name');
+    const textEl = document.getElementById('api-text');
+    const fileEl = document.getElementById('api-image');
+    const errorEl = document.getElementById('api-error-message');
+
+    errorEl.innerText = ''; 
+    const name = nameEl.value.trim();
+    const text = textEl.value.trim();
+
+    if (name.length < 3 || text.length < 10) {
+        errorEl.innerText = 'Название должно быть ≥ 3 символов, текст ≥ 10 символов';
+        return;
+    }
+
+    const files = fileEl.files;
+    
+    if (files && files.length > 0) {
+        const file = files[0]; 
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            sendCreateRequest(name, text, reader.result, file.name);
+        }
+        reader.readAsDataURL(file);
+    } else {
+        sendCreateRequest(name, text, null, '');
+    }
+}
+
+function sendCreateRequest(name, text, base64Data, filename) {
+    fetch('/api/articles/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: name,
+            text: text,
+            image_base64: base64Data,
+            image_filename: filename
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Перенаправляем пользователя обратно на интерактивный список статей
+            window.location.href = '/articles_api';
+        } else {
+            document.getElementById('api-error-message').innerText = 'Ошибка: ' + data.error;
+        }
+    });
+}
+</script>

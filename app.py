@@ -4,16 +4,11 @@ from exceptions import NotFoundException
 from views.view import View
 from webob import Request, Response
 from exceptions import UnauthorizedException
-
-
 from whitenoise import WhiteNoise
-
 import routes
 import handlers
 
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 class API:
     def __init__(self, static_dir="assets"):
@@ -25,8 +20,7 @@ class API:
             root=os.path.join(BASE_DIR, 'assets')
         )
 
-        # Дополнительно: раздаём папку static/ по префиксу /static/
-        # Сюда попадают загруженные фото статей
+        # Раздаём папку static/ по префиксу /static/ (включая uploads)
         self.whitenoise.add_files(
             os.path.join(BASE_DIR, 'static'),
             prefix='/static/'
@@ -34,9 +28,7 @@ class API:
 
     def wsgi_app(self, environ, start_response):
         request = Request(environ)
-
         response = self.handle_request(request)
-
         return response(environ, start_response)
 
     def __call__(self, environ, start_response):
@@ -44,12 +36,7 @@ class API:
 
     def handle_request(self, request):
         response = Response()
-
         try:
-            result = self.find_handler_re(request_path=request.path)
-
-            request_url = request.environ.get("REQUEST_URI")
-
             result = self.find_handler_re(request_path=request.path)
             if result is None:
                 raise NotFoundException('Страница не найдена')
@@ -90,5 +77,5 @@ class API:
             return handler
         return wrapper
 
-
+# Объект WSGI-приложения
 app = API()

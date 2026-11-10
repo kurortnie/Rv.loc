@@ -20,4 +20,17 @@ routes = {
     r"^/home$"          : [SiteController, SiteController.index],
     r"^/about$"         : [SiteController, SiteController.about],
     r"^/hello/(.*)$"    : [SiteController, SiteController.hello],
+
+
+    # HTML Роуты для работы через API (Single Page/AJAX приложения)
+    r'^/articles_api$': (ArticlesController, ArticlesController.api_page),
+    r'^/articles_api/add$': (ArticlesController, ArticlesController.api_add_page),
+    r'^/articles_api/(\d+)/edit$': (ArticlesController, ArticlesController.api_edit_page),
+
+    # REST API Роуты (Только JSON данные)
+    r'^/api/articles$': (ArticlesController, ArticlesController.api_index),
+    r'^/api/articles/(\d+)$': (ArticlesController, ArticlesController.api_view),
+    r'^/api/articles/add$': (ArticlesController, ArticlesController.api_add),
+    r'^/api/articles/(\d+)/edit$': (ArticlesController, ArticlesController.api_edit),
+    r'^/api/articles/(\d+)/delete$': (ArticlesController, ArticlesController.api_delete),
 }

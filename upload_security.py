@@ -2,7 +2,6 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 
-
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_MIMES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 МБ
@@ -33,21 +32,19 @@ def validate_upload(file_storage):
     Проверяет файл перед сохранением.
     Возвращает (ok: bool, error: str | None).
     """
-   
     if file_storage is None:
         return True, None
 
     filename = getattr(file_storage, 'filename', None)
-    if not filename:  
+    # Если файл не выбран пользователем в форме
+    if not filename or filename.strip() == "":  
         return True, None  
 
-    original = secure_filename(filename)
-
-    
-    if not _allowed_extension(original):
+    # Проверяем расширение по исходному имени (сохраняем кириллицу)
+    if not _allowed_extension(filename):
         return False, 'Недопустимое расширение. Разрешены: png, jpg, jpeg, gif, webp'
 
-    
+    # Определение MIME-типа
     if hasattr(file_storage, 'file') and file_storage.file is not None:
         header = file_storage.file.read(512)
         file_storage.file.seek(0)
@@ -59,7 +56,7 @@ def validate_upload(file_storage):
     if mime not in ALLOWED_MIMES:
         return False, 'Файл не является изображением'
 
-    
+    # Проверка размера
     if hasattr(file_storage, 'file') and file_storage.file is not None:
         file_storage.file.seek(0, os.SEEK_END)
         size = file_storage.file.tell()
@@ -75,12 +72,13 @@ def validate_upload(file_storage):
 
 
 def safe_filename(original: str) -> str:
-    """Генерирует безопасное имя с UUID и валидным расширением."""
-    original = secure_filename(original)
-    if '.' in original:
-        ext = original.rsplit('.', 1)[1].lower()
-    else:
+    """Генерирует безопасное случайное имя с валидным расширением."""
+    if not original or '.' not in original:
         ext = 'bin'
+    else:
+        ext = original.rsplit('.', 1)[1].lower()
+        
     if ext not in ALLOWED_EXTENSIONS:
         ext = 'bin'
+        
     return f"{uuid.uuid4().hex}.{ext}"

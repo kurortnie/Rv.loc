@@ -1,0 +1,103 @@
+<h1>Редактирование статьи через API</h1>
+
+<div id="api-error-message" style="color: red; margin-bottom: 15px; font-weight: bold;"></div>
+
+<div class="api-form-box" style="background: #1a1a1a; border: 1px solid #333; padding: 20px; border-radius: 5px;">
+    <div style="margin-bottom: 15px;">
+        <input type="text" id="api-name" placeholder="Название статьи" style="width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px;">
+    </div>
+    <div style="margin-bottom: 15px;">
+        <textarea id="api-text" placeholder="Текст статьи" style="width: 100%; height: 120px; padding: 10px; background: #2a2a2a; border: 1px solid #444; color: #fff; border-radius: 4px; resize: vertical;"></textarea>
+    </div>
+    
+    <!-- Отображение текущего фото -->
+    <div id="current-image-box" style="margin-bottom: 15px; display: none;">
+        <p style="color: #ccc; margin: 0 0 5px 0;">Текущее изображение:</p>
+        <img id="api-current-img" src="" style="max-width: 150px; border: 1px solid #444;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label style="color: #ccc; display: block; margin-bottom: 5px;">Заменить изображение (опционально):</label>
+        <input type="file" id="api-image" accept="image/*" style="color: #ccc;">
+    </div>
+    <button onclick="submitEditArticle()" style="padding: 10px 20px; background: #ffffff; color: rgb(0, 0, 0); border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Сохранить изменения</button>
+    <a href="/articles_api" style="color: #ccc; margin-left: 15px; text-decoration: none;">Отмена</a>
+</div>
+
+<script>
+// Получаем ID статьи, который бэкенд передал в контекст шаблона
+const articleId = "{{ article_id }}";
+
+// 1. Предзаполнение формы актуальными данными из API при загрузке страницы
+document.addEventListener("DOMContentLoaded", function() {
+    fetch(`/api/articles/${articleId}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Статья не найдена');
+            return res.json();
+        })
+        .then(article => {
+            document.getElementById('api-name').value = article.name;
+            document.getElementById('api-text').value = article.text;
+            
+            if (article.image_url) {
+                document.getElementById('api-current-img').src = article.image_url;
+                document.getElementById('current-image-box').style.display = 'block';
+            }
+        })
+        .catch(err => {
+            document.getElementById('api-error-message').innerText = 'Ошибка получения данных статьи.';
+        });
+});
+
+// 2. Сборщик изменений и отправка
+function submitEditArticle() {
+    const nameEl = document.getElementById('api-name');
+    const textEl = document.getElementById('api-text');
+    const fileEl = document.getElementById('api-image');
+    const errorEl = document.getElementById('api-error-message');
+
+    errorEl.innerText = ''; 
+    const name = nameEl.value.trim();
+    const text = textEl.value.trim();
+
+    if (name.length < 3 || text.length < 10) {
+        errorEl.innerText = 'Название должно быть ≥ 3 символов, текст ≥ 10 символов';
+        return;
+    }
+
+    const files = fileEl.files;
+    if (files && files.length > 0) {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onloadend = function() {
+            sendUpdateRequest(name, text, reader.result, file.name);
+        }
+        reader.readAsDataURL(file);
+    } else {
+        sendUpdateRequest(name, text, null, '');
+    }
+}
+
+// 3. Отправка POST/PUT запроса на редактирование
+function sendUpdateRequest(name, text, base64Data, filename) {
+    const bodyData = { name: name, text: text };
+    if (base64Data) {
+        bodyData.image_base64 = base64Data;
+        bodyData.image_filename = filename;
+    }
+
+    fetch(`/api/articles/${articleId}/edit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyData)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/articles_api';
+        } else {
+            document.getElementById('api-error-message').innerText = 'Ошибка обновления: ' + data.error;
+        }
+    });
+}
+</script>
